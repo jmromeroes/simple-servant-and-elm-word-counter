@@ -1,0 +1,35 @@
+name: simple-counter-backend
+
+ghc-options: -Wall
+
+tests:
+  spec:
+    main: Spec.hs
+    source-dirs:
+      - test
+    dependencies:
+      - hspec
+      - simple-counter-backend
+      - servant-client
+      - warp >= 3.2.4
+      - http-client
+      - http-types
+
+library:
+  source-dirs:
+    - src
+
+executables:
+  simple-counter-backend:
+    main: exe/Main.hs
+    dependencies:
+      - simple-counter-backend
+
+dependencies:
+  - base
+  - servant
+  - servant-server
+  - transformers
+  - aeson
+  - wai
+  - warp
