@@ -30,6 +30,12 @@ dependencies:
   - servant
   - servant-server
   - transformers
+  - servant-multipart
+  - http-client
   - aeson
   - wai
+  - text
   - warp
+  - http-api-data
+  - bytestring
+  - containers
