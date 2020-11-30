@@ -11,6 +11,13 @@ packages:
       sha256: 51c4e9e8be3ee80689bb6df46aee484a4f434dbeb33f4379ed8d1741fe4631cd
   original:
     hackage: servant-multipart-0.12
+- completed:
+    hackage: quickcheck-arbitrary-adt-0.3.1.0@sha256:b7a47dae6d373d1a5f6c3deb58b6bd669917326d82b50a145374ac9b385dbdb7,1419
+    pantry-tree:
+      size: 381
+      sha256: 3dbb180ee125a4c25e7a5383651eafa3d69b3eae27cbfccc7ebab926c95bdd04
+  original:
+    hackage: quickcheck-arbitrary-adt-0.3.1.0
 snapshots:
 - completed:
     size: 532832

@@ -45,8 +45,8 @@ countWordsMap (x:xs) m =
 -- This is the usual way to create orderings in Haskell, using the types LT (Lower than) and GT (Greater than)
 compareWordCount :: WordCount -> WordCount -> Ordering
 compareWordCount (WordCount _ countA) (WordCount _ countB)
-  | countA < countB = LT
-  | otherwise       = GT
+  | countA < countB = GT
+  | otherwise       = LT
 
 -- This is just a way to retrieve a sorted list according to the SortBy specific type
 

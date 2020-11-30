@@ -40,3 +40,5 @@ dependencies:
   - http-api-data
   - bytestring
   - containers
+  - QuickCheck
+  - quickcheck-arbitrary-adt

@@ -1,49 +1,93 @@
+{-# LANGUAGE DeriveGeneric #-}
 
 module AppSpec where
 
-import           Control.Exception (throwIO)
-import           Network.HTTP.Client (Manager, newManager, defaultManagerSettings)
-import           Network.HTTP.Types
-import           Network.Wai (Application)
-import           Network.Wai.Handler.Warp
-import           Servant
-import           Servant.Client
-import           Test.Hspec
+import Test.Hspec
+import Test.QuickCheck.Arbitrary.ADT
 
-import           App hiding (getItems)
+import App hiding (getItems)
 
-getItems :: ClientM [Item]
-getItem :: Integer -> ClientM Item
-getItems :<|> getItem = client itemApi
+import Data.List (intercalate, find)
+
+import Data.Map (Map)
+import qualified Data.Map as Map
+
+import Test.QuickCheck
+
+import Control.Monad.IO.Class (liftIO)
+
+import Domain
+
+randomList :: Arbitrary a => Gen [a]
+randomList = frequency
+  [ (1, (:) <$> arbitrary <*> return [])
+  , (4, (:) <$> arbitrary <*> randomList)
+  ]
+
+-- more verbose alternative to make things clear
+nonEmptyString :: Gen String
+nonEmptyString = fmap (show) (choose (1, 1000) :: Gen Integer)
+
+instance Arbitrary WordCount where
+  arbitrary = WordCount <$> nonEmptyString <*> (choose (0, 10000))
+
+instance ToADTArbitrary WordCount
+
+isSorted :: [WordCount] -> (Integer -> Integer -> Bool) -> Integer -> Bool
+isSorted l op initialValue = snd $ foldl (\ (prev, b) (WordCount _ curr) -> (curr, b && (curr `op` prev))) (initialValue, True) l
+
+isSortedDesc :: [WordCount] -> Bool
+isSortedDesc wordsCount = isSorted wordsCount (>=) $ toInteger 0
+
+isSortedAsc :: [WordCount] -> Bool
+isSortedAsc wordsCount = isSorted wordsCount (<=) $ toInteger 10000
 
 spec :: Spec
 spec = do
-  describe "/words/count?sortBy=asc" $ do
-    withClient mkApp $ do
-      it "lists an example item" $ \ env -> do
-        try env getItems `shouldReturn` [Item 0 "example item"]
+  describe "Domain.assocToWordCount" $ do
+    it "turns an (String, Integer) tuple into a WordCount" $ \ env -> do
+      property $ \(word, count) -> assocToWordCount (word, count) == (WordCount word count)
 
-      it "allows to show items by id" $ \ env -> do
-        try env (getItem 0) `shouldReturn` Item 0 "example item"
+  describe "Domain.countWordsMap" $ do
+    it "turns a non empty list of Strings (e.g [String]) into a Map String Integer" $ \ env -> do
+      forAll randomList $ \list ->
+        forAll (choose (fromInteger 0 :: Int, length list - 1)) $ \n ->
+          let numberOfFilter = length $ filter (\w -> w == list!!n) $ list
+              numberOfMap = Map.findWithDefault 0 (list!!n) (countWordsMap list Map.empty)
+          in
+            numberOfMap == toInteger numberOfFilter
+          
+    it "turns an empty list of Strings into an empty Map" $ \ env ->
+      countWordsMap [] Map.empty `shouldBe` Map.empty
 
-      it "throws a 404 for missing items" $ \ env -> do
-        try env (getItem 42) `shouldThrow` errorsWithStatus notFound404
+    it "checks ordering of two WordCount elements" $ \ env ->
+      property $ \w1@(WordCount _ countA) w2@(WordCount _ countB) ->
+        compareWordCount w1 w2 == if countA < countB then GT else LT
 
-errorsWithStatus :: Status -> ServantError -> Bool
-errorsWithStatus status servantError = case servantError of
-  FailureResponse response -> responseStatusCode response == status
-  _ -> False
+  describe "Domain.sortArray" $ do
+    it "sorts a [WordCount] in increasing order" $ \env -> do
+      forAll randomList $ \list ->
+        isSortedAsc $ sortArray list (Just Asc)
 
-withClient :: IO Application -> SpecWith ClientEnv -> SpecWith ()
-withClient x innerSpec =
-  beforeAll (newManager defaultManagerSettings) $ do
-    flip aroundWith innerSpec $ \ action -> \ httpManager -> do
-      testWithApplication x $ \ port -> do
-        let testBaseUrl = BaseUrl Http "localhost" port ""
-        action (ClientEnv httpManager testBaseUrl Nothing)
+    it "sorts a [WordCount] in decreasing order" $ \env -> do
+      forAll randomList $ \list ->
+        isSortedDesc $ sortArray list (Just Desc)
 
-type Host = (Manager, BaseUrl)
-
-try :: ClientEnv -> ClientM a -> IO a
-try clientEnv action = either throwIO return =<<
-  runClientM action clientEnv
+    it "keeps the same a [WordCount] if no sorting order provided" $ \env -> do
+      forAll randomList $ \list ->
+        sortArray list Nothing == list
+        
+  describe "Domain.countWords" $ do
+    it "counts the words in a String and returns a [WordCount] with the respective count" $ \ env ->
+      forAll (listOf1 nonEmptyString) $ \list ->
+        forAll (choose (fromInteger 0 :: Int, length list - 1)) $ \n ->
+          let numberOfFilter = length $ filter (\w -> w == list!!n) list
+              intercalated = intercalate " " list
+              maybeWord = find (\w -> (word w) == list!!n) (countWords intercalated Nothing)
+          in
+            case maybeWord of
+              Nothing ->
+                False
+              Just v ->
+                count v == toInteger numberOfFilter
+                
