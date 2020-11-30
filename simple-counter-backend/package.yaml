@@ -32,6 +32,7 @@ dependencies:
   - transformers
   - servant-multipart
   - http-client
+  - utf8-string
   - aeson
   - wai
   - text

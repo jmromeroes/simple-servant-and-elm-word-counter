@@ -18,7 +18,7 @@ getItems :<|> getItem = client itemApi
 
 spec :: Spec
 spec = do
-  describe "/item" $ do
+  describe "/words/count?sortBy=asc" $ do
     withClient mkApp $ do
       it "lists an example item" $ \ env -> do
         try env getItems `shouldReturn` [Item 0 "example item"]
