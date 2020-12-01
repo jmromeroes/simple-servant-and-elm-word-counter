@@ -11,6 +11,9 @@ import Task
 import Json.Decode exposing (Decoder, map2, field, string, int)
 import Http
 
+--Visualization
+
+import LineChart
 
 -- MAIN
 
@@ -82,7 +85,7 @@ update msg model =
     GotWords result ->
         case result of
             Ok wordsCount ->
-                (model, Cmd.none)
+                ( { model | wordsCount = wordsCount }, Cmd.none)
             Err _ ->
                 (model, Cmd.none)
 
@@ -90,7 +93,7 @@ update msg model =
 postWords : Model -> Cmd Msg
 postWords model =
   Http.post
-    { url = "http://localhost:3000/words/count?sortBy=asc"
+    { url = "http://localhost:3000/words/count?sortBy=desc"
     , body = Http.multipartBody ([ Http.stringPart "text" (.text model)] ++ (List.map  (\file_ -> Http.filePart "wordsFile" file_) (.files model)))
     , expect = Http.expectJson GotWords (D.list wordCountDecoder)
     }
@@ -102,11 +105,12 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
   Sub.none
 
-
-
 -- VIEW
-
-
+chart : Model -> Html msg                                             
+chart model =
+   LineChart.view1 Tuple.first Tuple.second
+    (List.indexedMap (\index w -> Tuple.pair (toFloat index) (toFloat (.count w))) (.wordsCount model))
+                         
 view : Model -> Html Msg
 view model =
   div
@@ -127,6 +131,7 @@ view model =
           onInput Text
         ] []
     , button [ onClick SubmitInformation ] [text "Count words"]
+    , chart model
     ]
 
 
