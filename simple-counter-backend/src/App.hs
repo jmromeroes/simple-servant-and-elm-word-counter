@@ -8,6 +8,7 @@ module App where
 
 import Network.Wai
 import Network.Wai.Handler.Warp
+import Network.Wai.Middleware.Cors
 import Network.HTTP.Client.MultipartFormData
 import Servant
 import Servant.Multipart
@@ -51,7 +52,7 @@ run = do
 
 -- Creates IO application from API definition and serrver
 mkApp :: IO Application
-mkApp = return $ serve wordsApi server
+mkApp = return $ simpleCors $  serve wordsApi server
 
 -- Creates server definition for API, which is the one that adds the logic to the typed specification
 server :: Server WordsCountAPI
@@ -65,5 +66,5 @@ countWordsApi multipartData sortBy_ = do
       res2 = forM (files multipartData) $ \file -> do
                  let content = fdPayload file
                  countWords (decode $ LBS.unpack content) sortBy_
-
+                 
   return $ sortArray (concat (res1 ++ res2)) sortBy_

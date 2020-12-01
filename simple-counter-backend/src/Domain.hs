@@ -51,8 +51,8 @@ compareWordCount (WordCount _ countA) (WordCount _ countB)
 -- This is just a way to retrieve a sorted list according to the SortBy specific type
 
 sortArray :: [WordCount] -> Maybe SortBy -> [WordCount]
-sortArray wordsCount (Just Asc)  = sortBy compareWordCount wordsCount
-sortArray wordsCount (Just Desc) = reverse $ sortBy compareWordCount wordsCount
+sortArray wordsCount (Just Desc)  = sortBy compareWordCount wordsCount
+sortArray wordsCount (Just Asc) = reverse $ sortBy compareWordCount wordsCount
 sortArray wordsCount Nothing     = wordsCount
 
 -- Using the helper functions this creates and sorts the WordCount list
