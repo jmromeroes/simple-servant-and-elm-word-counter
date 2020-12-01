@@ -35,6 +35,7 @@ to reload the code (after making changes) and run the tests again.
 To run the app, do:
 
 ``` bash
+stack build
 stack exec example-servant-minimal
 ```
 
