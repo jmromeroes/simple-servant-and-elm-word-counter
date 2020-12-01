@@ -37,10 +37,10 @@ isSorted :: [WordCount] -> (Integer -> Integer -> Bool) -> Integer -> Bool
 isSorted l op initialValue = snd $ foldl (\ (prev, b) (WordCount _ curr) -> (curr, b && (curr `op` prev))) (initialValue, True) l
 
 isSortedDesc :: [WordCount] -> Bool
-isSortedDesc wordsCount = isSorted wordsCount (>=) $ toInteger 0
+isSortedDesc wordsCount = isSorted wordsCount (<=) $ toInteger 10000
 
 isSortedAsc :: [WordCount] -> Bool
-isSortedAsc wordsCount = isSorted wordsCount (<=) $ toInteger 10000
+isSortedAsc wordsCount = isSorted wordsCount (>=) $ toInteger 0
 
 spec :: Spec
 spec = do
