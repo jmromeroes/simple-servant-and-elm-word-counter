@@ -1,3 +1,10 @@
+You need the stack servant tool that can be downloaded like this in Unix systems:
+
+``` bash
+curl -sSL https://get.haskellstack.org/ | sh
+```
+For further instructions about Stack please go to https://docs.haskellstack.org/en/stable/README/
+
 This is a very minimal example of a project that uses
 
 - `servant` to specify a REST API,
